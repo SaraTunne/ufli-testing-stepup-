@@ -1,21 +1,1652 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Foundational Reading Placement Test</title>
-    <meta name="description" content="Interactive K-8 reading assessment tool with natural phonetic speech synthesis and gamified set navigation." />
-    <meta property="og:title" content="Foundational Reading Placement Test" />
-    <meta property="og:description" content="Interactive K-8 reading assessment tool with natural phonetic speech synthesis and gamified set navigation." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-amber-50/40 text-slate-800 antialiased selection:bg-amber-200">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <script>
+    // Safeguard window.fetch against extensions/interceptors attempting to override getter-only fetch
+    (function() {
+      try {
+        var currentFetch = window.fetch ? window.fetch.bind(window) : null;
+        Object.defineProperty(window, 'fetch', {
+          get: function() {
+            return currentFetch;
+          },
+          set: function(newFetch) {
+            currentFetch = newFetch;
+          },
+          configurable: true,
+          enumerable: true
+        });
+      } catch (e) {
+        // Silently ignore if already defined
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foundational Reading Placement Test (UFLI)</title>
+  <meta name="description" content="K-8 Foundational Reading Placement Test with mixed real and made-up words, natural phonetic speech synthesis, and gamified scoring.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
 
+  <style>
+    :root {
+      --font-display: 'Fredoka', cursive, sans-serif;
+      --font-body: 'Lexend', system-ui, sans-serif;
+      --color-real: #10b981;
+      --color-real-hover: #059669;
+      --color-real-light: #ecfdf5;
+      --color-fake: #8b5cf6;
+      --color-fake-hover: #7c3aed;
+      --color-fake-light: #f5f3ff;
+      --color-primary: #0284c7;
+      --color-accent: #f59e0b;
+      --color-bg-start: #f0fdf4;
+      --color-bg-mid: #eff6ff;
+      --color-bg-end: #fef3c7;
+      --card-radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: linear-gradient(135deg, var(--color-bg-start) 0%, var(--color-bg-mid) 50%, var(--color-bg-end) 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 2px solid #e2e8f0;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #334155;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      color: white;
+    }
+
+    .star-pill {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Set Navigation Ribbon */
+    .set-ribbon-container {
+      max-width: 900px;
+      width: 100%;
+      margin: 16px auto 0 auto;
+      padding: 0 16px;
+    }
+
+    .set-ribbon {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 10px 2px;
+      scrollbar-width: thin;
+    }
+
+    .set-ribbon::-webkit-scrollbar {
+      height: 6px;
+    }
+    .set-ribbon::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    .set-chip {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      border-radius: 14px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .set-chip:hover {
+      border-color: #38bdf8;
+      color: #0284c7;
+      transform: translateY(-1px);
+    }
+
+    .set-chip.active {
+      background: #0284c7;
+      color: white;
+      border-color: #0284c7;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+
+    .set-chip .check-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Word Card */
+    .card-stage {
+      width: 100%;
+      background: white;
+      border-radius: var(--card-radius);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      border: 4px solid #f1f5f9;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+
+    .card-stage.bounce {
+      animation: gentle-bounce 0.35s ease;
+    }
+
+    @keyframes gentle-bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+
+    /* Card Meta */
+    .card-meta {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .badge-set {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: #0284c7;
+      background: #e0f2fe;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    /* Word Display: Never hints whether real or made-up */
+    .word-box {
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .word-text {
+      font-family: var(--font-body);
+      font-size: 76px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #0f172a;
+      line-height: 1;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
+    }
+
+    .word-text.speaking {
+      transform: scale(1.08);
+      color: #0284c7;
+    }
+
+    /* Listen Button */
+    .btn-listen {
+      background: #f8fafc;
+      color: #334155;
+      border: 2px solid #e2e8f0;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .btn-listen:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+    }
+
+    .btn-listen.speaking {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #f59e0b;
+      animation: pulse-ring 1s infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+
+    /* Two Classification Buttons */
+    .classification-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 580px;
+    }
+
+    .btn-choice {
+      padding: 20px 24px;
+      border-radius: 22px;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 3px solid transparent;
+      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
+
+    .btn-choice:active {
+      transform: scale(0.96);
+    }
+
+    /* Real Word Button */
+    .btn-choice-real {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.28);
+    }
+
+    .btn-choice-real:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 28px rgba(16, 185, 129, 0.38);
+    }
+
+    /* Made-Up Word Button */
+    .btn-choice-fake {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: white;
+      box-shadow: 0 10px 24px rgba(139, 92, 246, 0.28);
+    }
+
+    .btn-choice-fake:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 14px 28px rgba(139, 92, 246, 0.38);
+    }
+
+    .choice-sub {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    /* Bottom Keyboard Hints */
+    .footer-hints {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .kbd {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: bold;
+      color: #334155;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    /* Modal Backdrop */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 28px;
+      max-width: 620px;
+      width: 100%;
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: center;
+      animation: modal-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modal-pop {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-trophy {
+      font-size: 60px;
+      margin-bottom: 12px;
+      display: inline-block;
+      animation: trophy-bounce 0.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes trophy-bounce {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-8px) scale(1.08); }
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .modal-subtitle {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* Score Breakdown Stats */
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .score-card-box {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .score-card-box.highlight {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+    }
+
+    .score-box-num {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .score-box-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-action {
+      padding: 14px 20px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.3);
+    }
+    .btn-action-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-action-secondary {
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .btn-action-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Review Table */
+    .review-table-container {
+      max-height: 340px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    table.review-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    table.review-table th, table.review-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    table.review-table th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: #475569;
+      position: sticky;
+      top: 0;
+    }
+
+    .badge-correct {
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-incorrect {
+      background: #fee2e2;
+      color: #991b1b;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-speaker-mini {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+    .btn-speaker-mini:hover {
+      background: #e2e8f0;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .word-text {
+        font-size: 56px;
+      }
+      .classification-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .btn-choice {
+        padding: 16px 20px;
+        font-size: 18px;
+      }
+      .score-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📚</div>
+      <div>
+        <div class="brand-title">UFLI Reading Placement Test</div>
+        <div class="brand-subtitle">Interactive Real vs. Made-Up Word Classification</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="star-pill">
+        <span>⭐</span>
+        <span id="starScore">0</span>
+      </div>
+      <button class="btn" id="btnScript" title="View Administration Script">📋 Script</button>
+      <button class="btn" id="btnSummary" title="View Full Teacher Placement Summary">📊 Master Summary</button>
+      <button class="btn" id="btnSpeed" title="Toggle Audio Speed">⚡ 0.85x Speed</button>
+    </div>
+  </header>
+
+  <!-- Quick Set Navigation Ribbon (Sets 1 to 11) -->
+  <div class="set-ribbon-container">
+    <div class="set-ribbon" id="setRibbon"></div>
+  </div>
+
+  <!-- Main Game Stage -->
+  <main>
+    <div class="card-stage" id="cardStage">
+      <!-- Card Meta -->
+      <div class="card-meta">
+        <span class="badge-set" id="currentSetBadge">Set 1: Short Vowels</span>
+        <span id="currentWordProgress">Word 1 of 20</span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBarFill" style="width: 5%;"></div>
+      </div>
+
+      <!-- Prominent Word Display (Strictly NO hints on whether it is real or made-up!) -->
+      <div class="word-box">
+        <div class="word-text" id="wordDisplay">mat</div>
+      </div>
+
+      <!-- Listen Button -->
+      <button class="btn-listen" id="btnListen" aria-label="Listen to word pronunciation">
+        <span id="listenIcon">🔊</span>
+        <span id="listenLabel">Listen</span>
+      </button>
+
+      <!-- Interactive Classification Choices -->
+      <div class="classification-row">
+        <button class="btn-choice btn-choice-real" id="btnChooseReal">
+          <span>Real Word 🟢</span>
+          <span class="choice-sub">A real English word</span>
+        </button>
+
+        <button class="btn-choice btn-choice-fake" id="btnChooseFake">
+          <span>Made-Up Word 🟣</span>
+          <span class="choice-sub">A silly make-believe word</span>
+        </button>
+      </div>
+
+      <!-- Keyboard Accessibility Hints -->
+      <div class="footer-hints">
+        <span><span class="kbd">Space</span> Listen</span>
+        <span><span class="kbd">←</span> or <span class="kbd">1</span> Real Word</span>
+        <span><span class="kbd">→</span> or <span class="kbd">2</span> Made-Up Word</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Set Completed Celebration Modal -->
+  <div class="modal-overlay" id="modalCompletion">
+    <div class="modal-card">
+      <div class="modal-trophy" id="completionEmoji">🎉</div>
+      <h2 class="modal-title" id="completionTitle">Set 1 Complete!</h2>
+      <p class="modal-subtitle" id="completionSubtitle">Awesome reading effort! Here is your score breakdown:</p>
+
+      <div class="score-grid">
+        <div class="score-card-box highlight">
+          <div class="score-box-num" id="statTotalScore">18 / 20</div>
+          <div class="score-box-label">Total Set Score</div>
+        </div>
+        <div class="score-card-box">
+          <div class="score-box-num" id="statRealScore">9 / 10</div>
+          <div class="score-box-label">Real Words Correct</div>
+        </div>
+        <div class="score-card-box">
+          <div class="score-box-num" id="statFakeScore">9 / 10</div>
+          <div class="score-box-label">Made-Up Words Correct</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-action btn-action-primary" id="btnAdvanceSet">Advance to Next Set 🚀</button>
+        <button class="btn-action btn-action-secondary" id="btnReviewSet">Review Words in this Set 🔍</button>
+        <button class="btn-action btn-action-secondary" id="btnRetakeSet">Retake Set (New Shuffle) 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Set Modal -->
+  <div class="modal-overlay" id="modalReview">
+    <div class="modal-card" style="max-width: 680px;">
+      <h2 class="modal-title" id="reviewTitle">Set Review</h2>
+      <p class="modal-subtitle">Review each word, whether it was real or made-up, and your answer.</p>
+
+      <div class="review-table-container">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Word</th>
+              <th>Actual Type</th>
+              <th>Your Guess</th>
+              <th>Result</th>
+              <th>Audio</th>
+            </tr>
+          </thead>
+          <tbody id="reviewTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 16px;">
+        <button class="btn-action btn-action-primary" id="btnCloseReview">Back to Results</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Master Teacher Summary Modal -->
+  <div class="modal-overlay" id="modalSummary">
+    <div class="modal-card" style="max-width: 760px;">
+      <h2 class="modal-title">UFLI Placement Score Sheet</h2>
+      <p class="modal-subtitle">Comprehensive scoring breakdown across Sets 1 to 11 for lesson placement.</p>
+
+      <div class="review-table-container" style="max-height: 380px;">
+        <table class="review-table">
+          <thead>
+            <tr>
+              <th>Set</th>
+              <th>Skill Focus</th>
+              <th>Real Correct</th>
+              <th>Made-Up Correct</th>
+              <th>Total Score</th>
+              <th>Accuracy</th>
+              <th>Mastery (≥80%)</th>
+            </tr>
+          </thead>
+          <tbody id="summaryTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+        <button class="btn" id="btnCopyReport">📋 Copy Report to Clipboard</button>
+        <button class="btn btn-primary" id="btnCloseSummary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Administration Script Modal -->
+  <div class="modal-overlay" id="modalScript">
+    <div class="modal-card" style="max-width: 600px; text-align: left;">
+      <h2 class="modal-title">Administration Script</h2>
+      <p class="modal-subtitle">Read this to the student before beginning the placement test:</p>
+      
+      <div style="background:#ecfdf5; border-left:4px solid #10b981; padding:16px; border-radius:0 14px 14px 0; color:#065f46; font-size:15px; line-height:1.6; margin-bottom:16px;">
+        “Today, we are going to take a test to see where you are at in reading.<br><br>
+        I’m going to show you some words to read and listen to. Some are real words and some are made-up words that may or may not be tricky to read, but please try your best. Remember that some are made-up words, so do not try to make them sound like real words. Ready?”
+      </div>
+
+      <div style="font-size:13px; color:#475569; line-height:1.5;">
+        <strong>Instructions:</strong>
+        <ul style="padding-left:20px; margin-top:6px;">
+          <li>Words in every set are interleaved into a mixed sequence.</li>
+          <li>The student can click <strong>Listen 🔊</strong> to hear the word read phonetically.</li>
+          <li>The student selects <strong>Real Word 🟢</strong> or <strong>Made-Up Word 🟣</strong>.</li>
+          <li>Each correct classification earns 1 point.</li>
+          <li>At the end of each set, the score breakdown is displayed.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+        <button class="btn btn-primary" id="btnCloseScript">Got It, Let's Read!</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       CRITICAL PHONETIC RESPELLING MAP FOR ALL NONSENSE/PSEUDO WORDS
+       Forces Web Speech API to pronounce blendable English syllables naturally
+       instead of spelling them letter-by-letter (e.g. saying "T-O-B").
+       ===================================================================== */
+    const PHONETIC_MAP = {
+      // Set 1
+      "tob": "tahb",
+      "mip": "mipp",
+      "jum": "jum",
+      "yag": "yagg",
+      "fet": "fett",
+      "stum": "stumm",
+      "fosp": "fahsp",
+      "dret": "drett",
+      "blad": "bladd",
+      "nimp": "nimpp",
+
+      // Set 2
+      "oll": "awl",
+      "guth": "guth",
+      "whek": "weck",
+      "chob": "chahb",
+      "teng": "teng",
+      "vesh": "vesh",
+      "phin": "finn",
+      "jick": "jick",
+      "bith": "bith",
+      "heth": "heth",
+
+      // Set 3
+      "nume": "noom",
+      "moke": "mohk",
+      "zete": "zeet",
+      "dipe": "dype",
+      "lage": "lahj",
+      "dace": "dase",
+      "jame": "jaym",
+      "mose": "mohz",
+      "bete": "beet",
+      "jate": "jayt",
+
+      // Set 4
+      "diffed": "diff'd",
+      "vanging": "vang-ing",
+      "tulled": "tull'd",
+      "tashes": "tash-ez",
+      "dotal": "doh-tul",
+      "tickup": "tick-up",
+      "opet": "oh-pet",
+      "hended": "hend-ed",
+      "hectip": "heck-tip",
+      "mishes": "mish-ez",
+
+      // Set 5
+      "dudge": "dudj",
+      "zind": "zinned",
+      "jold": "johld",
+      "shild": "shy-uld",
+      "recolt": "ree-colt",
+      "pandy": "pan-dee",
+      "kitch": "kitch",
+      "ongle": "ong-gull",
+      "bly": "blye",
+      "vost": "vohst",
+
+      // Set 6
+      "merb": "merb",
+      "surt": "sert",
+      "narg": "nahrg",
+      "firl": "ferl",
+      "zord": "zord",
+
+      // Set 7
+      "deeb": "deeb",
+      "pait": "pate",
+      "klow": "kloh",
+      "yoe": "yoh",
+      "zie": "zye",
+      "rean": "reen",
+      "bigh": "bye",
+      "burkey": "ber-kee",
+      "voam": "vohm",
+      "tay": "tay",
+
+      // Set 8
+      "ruit": "root",
+      "lew": "loo",
+      "hauf": "hawf",
+      "puel": "pyoo-el",
+      "toob": "toob",
+      "vew": "vyoo",
+      "gaught": "gawt",
+      "tawn": "tawn",
+      "kue": "kyoo",
+      "dook": "dook",
+
+      // Set 9
+      "camb": "camm",
+      "knas": "nass",
+      "floy": "floy",
+      "lound": "lownd",
+      "voy": "voy",
+      "wrate": "rate",
+      "gowl": "gowl",
+      "wrike": "ryke",
+      "sumb": "sum",
+      "poul": "pool",
+
+      // Set 10
+      "ishes": "ish-ez",
+      "fonger": "fong-er",
+      "bostly": "bahst-lee",
+      "prepon": "pree-pahn",
+      "rehax": "ree-hax",
+      "lostest": "lahst-est",
+      "unoble": "un-oh-bull",
+      "zopless": "zahp-less",
+      "geerful": "jeer-full",
+      "hemix": "hee-mix",
+
+      // Set 11
+      "loter": "loh-ter",
+      "tassion": "tash-un",
+      "pature": "pay-chur",
+      "bowish": "boh-ish",
+      "tixture": "tix-chur"
+    };
+
+    /* =====================================================================
+       RAW DATA SETS (SETS 1 THROUGH 11)
+       ===================================================================== */
+    const RAW_SETS = [
+      {
+        id: 1,
+        title: "Set 1: Short Vowels & Blends",
+        real: ["mat", "pop", "beg", "cut", "tip", "skin", "bump", "sand", "step", "trek"],
+        fake: ["tob", "mip", "jum", "yag", "fet", "stum", "fosp", "dret", "blad", "nimp"]
+      },
+      {
+        id: 2,
+        title: "Set 2: Digraphs & Glued Sounds",
+        real: ["thing", "hall", "graph", "sack", "chop", "them", "song", "shin", "all", "bath"],
+        fake: ["guth", "whek", "chob", "teng", "vesh", "phin", "jick", "bith", "heth", "oll"]
+      },
+      {
+        id: 3,
+        title: "Set 3: VCe / Silent E",
+        real: ["made", "rope", "face", "cage", "rude", "eve", "ride", "tube", "bike", "ice"],
+        fake: ["nume", "moke", "zete", "dipe", "lage", "dace", "jame", "mose", "bete", "jate"]
+      },
+      {
+        id: 4,
+        title: "Set 4: Two-Syllables & Inflections",
+        real: ["human", "backlash", "cannot", "grasses", "called", "helmet", "foxes", "listed", "picked", "being"],
+        fake: ["diffed", "vanging", "tulled", "tashes", "dotal", "tickup", "opet", "hended", "hectip", "mishes"]
+      },
+      {
+        id: 5,
+        title: "Set 5: Open Syllables & Exceptions",
+        real: ["match", "wild", "ledge", "host", "revolt", "find", "spy", "fold", "duty", "ankle"],
+        fake: ["dudge", "zind", "jold", "shild", "recolt", "pandy", "kitch", "ongle", "bly", "vost"]
+      },
+      {
+        id: 6,
+        title: "Set 6: R-Controlled Vowels",
+        real: ["card", "sort", "fern", "bird", "hurt"],
+        fake: ["merb", "surt", "narg", "firl", "zord"]
+      },
+      {
+        id: 7,
+        title: "Set 7: Vowel Teams",
+        real: ["heap", "brief", "toe", "mail", "crow", "goat", "stay", "honey", "jeep", "sigh"],
+        fake: ["deeb", "pait", "klow", "yoe", "zie", "rean", "bigh", "burkey", "voam", "tay"]
+      },
+      {
+        id: 8,
+        title: "Set 8: Diphthongs & Variant Vowels",
+        real: ["hook", "taught", "suit", "slaw", "haul", "clue", "wash", "few", "bread", "scoop"],
+        fake: ["ruit", "lew", "hauf", "puel", "toob", "vew", "gaught", "tawn", "kue", "dook"]
+      },
+      {
+        id: 9,
+        title: "Set 9: Silent Letters & Complex Vowels",
+        real: ["wring", "gown", "knack", "pouch", "cloud", "toil", "coy", "limb", "knob", "coin"],
+        fake: ["camb", "knas", "floy", "lound", "voy", "wrate", "gowl", "wrike", "sumb", "poul"]
+      },
+      {
+        id: 10,
+        title: "Set 10: Prefixes & Suffixes",
+        real: ["endless", "oldest", "boxes", "mindful", "undo", "dislike", "offers", "longer", "prepay", "firmly"],
+        fake: ["ishes", "fonger", "bostly", "prepon", "rehax", "lostest", "unoble", "zopless", "geerful", "hemix"]
+      },
+      {
+        id: 11,
+        title: "Set 11: Multisyllabic & Derivational",
+        real: ["erosion", "creator", "agreement", "mixture", "printer", "workable", "newish", "quickness", "finalist", "dusty", "nation", "flexible", "unify", "binary", "tricycle"],
+        fake: ["loter", "tassion", "pature", "bowish", "tixture"]
+      }
+    ];
+
+    /* =====================================================================
+       INTERLEAVED / SHUFFLED MIXED SEQUENCE GENERATOR
+       Requirement 1: Do NOT group all real words first and nonsense words second.
+       Interleave / shuffle both real and nonsense words into an alternating,
+       mixed sequence so student never knows if next word is real or made-up.
+       ===================================================================== */
+    function createMixedSetDeck(rawSet) {
+      const realItems = rawSet.real.map(w => ({ text: w, type: 'real' }));
+      const fakeItems = rawSet.fake.map(w => ({ text: w, type: 'made-up' }));
+
+      // Interleave real and made-up words with Fisher-Yates shuffle
+      const combined = [...realItems, ...fakeItems];
+      for (let i = combined.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [combined[i], combined[j]] = [combined[j], combined[i]];
+      }
+
+      // Avoid long clusters of same type if length > 4
+      for (let i = 0; i < combined.length - 2; i++) {
+        if (combined[i].type === combined[i+1].type && combined[i].type === combined[i+2].type) {
+          // Find another element with different type later in deck and swap
+          for (let k = i + 3; k < combined.length; k++) {
+            if (combined[k].type !== combined[i].type) {
+              [combined[i+2], combined[k]] = [combined[k], combined[i+2]];
+              break;
+            }
+          }
+        }
+      }
+
+      return combined;
+    }
+
+    /* =====================================================================
+       APPLICATION STATE
+       ===================================================================== */
+    let currentSetIndex = 0;
+    let currentWordIndex = 0;
+    let currentSetDeck = [];
+    let setResults = []; // [{ word, actualType, studentGuess, isCorrect }]
+    let speechRate = 0.85;
+    let totalStars = 0;
+
+    // Master history per set: { [setId]: { deck, results, totalCorrect, realCorrect, fakeCorrect, totalWords, realTotal, fakeTotal } }
+    const masterSetScores = {};
+
+    /* =====================================================================
+       WEB AUDIO API SOUND GENERATOR
+       ===================================================================== */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine') {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {}
+    }
+
+    function playSuccessChime() {
+      playTone(523.25, 0.12, 'triangle'); // C5
+      setTimeout(() => playTone(659.25, 0.18, 'triangle'), 80); // E5
+    }
+
+    function playBounceSound() {
+      playTone(440, 0.1, 'sine');
+    }
+
+    function playVictoryFanfare() {
+      try {
+        const notes = [
+          { f: 523.25, d: 0.12, t: 0 },
+          { f: 659.25, d: 0.12, t: 100 },
+          { f: 783.99, d: 0.14, t: 200 },
+          { f: 1046.50, d: 0.45, t: 320 },
+        ];
+        notes.forEach(n => setTimeout(() => playTone(n.f, n.d, 'triangle'), n.t));
+      } catch(e) {}
+    }
+
+    /* =====================================================================
+       DOM ELEMENTS
+       ===================================================================== */
+    const wordDisplay = document.getElementById('wordDisplay');
+    const currentSetBadge = document.getElementById('currentSetBadge');
+    const currentWordProgress = document.getElementById('currentWordProgress');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const cardStage = document.getElementById('cardStage');
+    const btnListen = document.getElementById('btnListen');
+    const listenIcon = document.getElementById('listenIcon');
+    const listenLabel = document.getElementById('listenLabel');
+    const btnChooseReal = document.getElementById('btnChooseReal');
+    const btnChooseFake = document.getElementById('btnChooseFake');
+    const starScore = document.getElementById('starScore');
+    const setRibbon = document.getElementById('setRibbon');
+    const btnSpeed = document.getElementById('btnSpeed');
+
+    // Modals
+    const modalCompletion = document.getElementById('modalCompletion');
+    const completionEmoji = document.getElementById('completionEmoji');
+    const completionTitle = document.getElementById('completionTitle');
+    const completionSubtitle = document.getElementById('completionSubtitle');
+    const statTotalScore = document.getElementById('statTotalScore');
+    const statRealScore = document.getElementById('statRealScore');
+    const statFakeScore = document.getElementById('statFakeScore');
+    const btnAdvanceSet = document.getElementById('btnAdvanceSet');
+    const btnReviewSet = document.getElementById('btnReviewSet');
+    const btnRetakeSet = document.getElementById('btnRetakeSet');
+
+    const modalReview = document.getElementById('modalReview');
+    const reviewTitle = document.getElementById('reviewTitle');
+    const reviewTableBody = document.getElementById('reviewTableBody');
+    const btnCloseReview = document.getElementById('btnCloseReview');
+
+    const modalSummary = document.getElementById('modalSummary');
+    const summaryTableBody = document.getElementById('summaryTableBody');
+    const btnSummary = document.getElementById('btnSummary');
+    const btnCloseSummary = document.getElementById('btnCloseSummary');
+    const btnCopyReport = document.getElementById('btnCopyReport');
+
+    const modalScript = document.getElementById('modalScript');
+    const btnScript = document.getElementById('btnScript');
+    const btnCloseScript = document.getElementById('btnCloseScript');
+
+    /* =====================================================================
+       SPEECH SYNTHESIS ENGINE WITH PHONETIC MAPPING
+       ===================================================================== */
+    function speakCurrentWord() {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+
+      const item = currentSetDeck[currentWordIndex];
+      if (!item) return;
+
+      const raw = item.text.trim().toLowerCase();
+      // Pass pronounceable phonetic sound string so it speaks naturally like an English word
+      const speechSound = PHONETIC_MAP[raw] || raw;
+
+      const utter = new SpeechSynthesisUtterance(speechSound);
+      utter.lang = 'en-US';
+      utter.rate = speechRate;
+      utter.pitch = 1.05;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'));
+      if (preferred) utter.voice = preferred;
+
+      btnListen.classList.add('speaking');
+      wordDisplay.classList.add('speaking');
+      listenLabel.textContent = 'Speaking...';
+
+      utter.onend = () => {
+        btnListen.classList.remove('speaking');
+        wordDisplay.classList.remove('speaking');
+        listenLabel.textContent = 'Listen';
+      };
+
+      utter.onerror = () => {
+        btnListen.classList.remove('speaking');
+        wordDisplay.classList.remove('speaking');
+        listenLabel.textContent = 'Listen';
+      };
+
+      window.speechSynthesis.speak(utter);
+    }
+
+    /* =====================================================================
+       INITIALIZE / SWITCH SET
+       ===================================================================== */
+    function loadSet(index, shuffle = true) {
+      currentSetIndex = index;
+      currentWordIndex = 0;
+      setResults = [];
+
+      const rawSet = RAW_SETS[currentSetIndex];
+      if (shuffle || !currentSetDeck || currentSetDeck.length === 0) {
+        currentSetDeck = createMixedSetDeck(rawSet);
+      }
+
+      renderSetRibbon();
+      updateCardUI();
+    }
+
+    function renderSetRibbon() {
+      setRibbon.innerHTML = '';
+      RAW_SETS.forEach((s, idx) => {
+        const chip = document.createElement('button');
+        chip.className = 'set-chip' + (idx === currentSetIndex ? ' active' : '');
+        
+        let label = 'Set ' + s.id;
+        if (masterSetScores[s.id]) {
+          chip.innerHTML = label + ' <span class="check-dot"></span>';
+        } else {
+          chip.textContent = label;
+        }
+
+        chip.onclick = () => {
+          loadSet(idx, true);
+        };
+        setRibbon.appendChild(chip);
+      });
+    }
+
+    function updateCardUI() {
+      const rawSet = RAW_SETS[currentSetIndex];
+      const item = currentSetDeck[currentWordIndex];
+
+      if (!item) return;
+
+      // Word display prominently (pure text only - zero hints on type!)
+      wordDisplay.textContent = item.text;
+      currentSetBadge.textContent = rawSet.title;
+      currentWordProgress.textContent = `Word ${currentWordIndex + 1} of ${currentSetDeck.length}`;
+
+      const pct = Math.round(((currentWordIndex + 1) / currentSetDeck.length) * 100);
+      progressBarFill.style.width = pct + '%';
+
+      // Re-enable choice buttons
+      btnChooseReal.disabled = false;
+      btnChooseFake.disabled = false;
+    }
+
+    /* =====================================================================
+       CLASSIFICATION GUESS HANDLER
+       Lock in guess, check against hidden type, advance automatically.
+       ===================================================================== */
+    function handleChoice(studentGuess) {
+      if (btnChooseReal.disabled) return; // Prevent double clicks
+      btnChooseReal.disabled = true;
+      btnChooseFake.disabled = true;
+
+      const item = currentSetDeck[currentWordIndex];
+      const isCorrect = item.type === studentGuess;
+
+      // Record result
+      setResults.push({
+        word: item.text,
+        actualType: item.type,
+        studentGuess: studentGuess,
+        isCorrect: isCorrect
+      });
+
+      if (isCorrect) {
+        totalStars++;
+        starScore.textContent = totalStars;
+        playSuccessChime();
+      } else {
+        playBounceSound();
+      }
+
+      // Card bounce feedback
+      cardStage.classList.add('bounce');
+      setTimeout(() => cardStage.classList.remove('bounce'), 350);
+
+      // Auto-advance after gentle delay
+      setTimeout(() => {
+        if (currentWordIndex < currentSetDeck.length - 1) {
+          currentWordIndex++;
+          updateCardUI();
+        } else {
+          finishSet();
+        }
+      }, 380);
+    }
+
+    /* =====================================================================
+       FINISH SET & CELEBRATION
+       ===================================================================== */
+    function finishSet() {
+      const rawSet = RAW_SETS[currentSetIndex];
+      let realCorrect = 0;
+      let fakeCorrect = 0;
+      let totalCorrect = 0;
+
+      const realTotal = rawSet.real.length;
+      const fakeTotal = rawSet.fake.length;
+
+      setResults.forEach(r => {
+        if (r.isCorrect) {
+          totalCorrect++;
+          if (r.actualType === 'real') realCorrect++;
+          if (r.actualType === 'made-up') fakeCorrect++;
+        }
+      });
+
+      // Save to master registry
+      masterSetScores[rawSet.id] = {
+        deck: [...currentSetDeck],
+        results: [...setResults],
+        totalCorrect,
+        realCorrect,
+        fakeCorrect,
+        totalWords: currentSetDeck.length,
+        realTotal,
+        fakeTotal,
+        accuracy: Math.round((totalCorrect / currentSetDeck.length) * 100)
+      };
+
+      // Trigger Confetti
+      try {
+        if (typeof confetti === 'function') {
+          confetti({
+            particleCount: 120,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
+      } catch (e) {}
+
+      playVictoryFanfare();
+
+      // Populate Completion Modal
+      completionTitle.textContent = `${rawSet.title.split(':')[0]} Complete!`;
+      statTotalScore.textContent = `${totalCorrect} / ${currentSetDeck.length}`;
+      statRealScore.textContent = `${realCorrect} / ${realTotal}`;
+      statFakeScore.textContent = `${fakeCorrect} / ${fakeTotal}`;
+
+      const pct = Math.round((totalCorrect / currentSetDeck.length) * 100);
+      if (pct >= 85) {
+        completionEmoji.textContent = '🌟';
+        completionSubtitle.textContent = `Magnificent work! You scored ${pct}% on this reading set!`;
+      } else if (pct >= 70) {
+        completionEmoji.textContent = '🎉';
+        completionSubtitle.textContent = `Great effort! You scored ${pct}% on this reading set!`;
+      } else {
+        completionEmoji.textContent = '🌱';
+        completionSubtitle.textContent = `Good practice! You scored ${pct}%. Review words below to build mastery!`;
+      }
+
+      // Configure advance button
+      if (currentSetIndex < RAW_SETS.length - 1) {
+        btnAdvanceSet.textContent = `Advance to Set ${RAW_SETS[currentSetIndex + 1].id} 🚀`;
+        btnAdvanceSet.style.display = 'flex';
+      } else {
+        btnAdvanceSet.textContent = `View Master Placement Summary 🎓`;
+        btnAdvanceSet.style.display = 'flex';
+      }
+
+      modalCompletion.classList.add('active');
+      renderSetRibbon();
+    }
+
+    /* =====================================================================
+       REVIEW MODAL
+       ===================================================================== */
+    function openReviewModal() {
+      const rawSet = RAW_SETS[currentSetIndex];
+      reviewTitle.textContent = `${rawSet.title} Review`;
+      reviewTableBody.innerHTML = '';
+
+      setResults.forEach(r => {
+        const tr = document.createElement('tr');
+        
+        const tdWord = document.createElement('td');
+        tdWord.style.fontWeight = 'bold';
+        tdWord.style.fontSize = '15px';
+        tdWord.textContent = r.word;
+
+        const tdActual = document.createElement('td');
+        tdActual.textContent = r.actualType === 'real' ? 'Real Word 🟢' : 'Made-Up 🟣';
+
+        const tdGuess = document.createElement('td');
+        tdGuess.textContent = r.studentGuess === 'real' ? 'Real Word' : 'Made-Up';
+
+        const tdResult = document.createElement('td');
+        if (r.isCorrect) {
+          tdResult.innerHTML = '<span class="badge-correct">✓ Correct</span>';
+        } else {
+          tdResult.innerHTML = '<span class="badge-incorrect">✗ Incorrect</span>';
+        }
+
+        const tdAudio = document.createElement('td');
+        const btnPlay = document.createElement('button');
+        btnPlay.className = 'btn-speaker-mini';
+        btnPlay.textContent = '🔊 Play';
+        btnPlay.onclick = () => {
+          const sound = PHONETIC_MAP[r.word.toLowerCase()] || r.word;
+          const utter = new SpeechSynthesisUtterance(sound);
+          utter.lang = 'en-US';
+          utter.rate = speechRate;
+          window.speechSynthesis.speak(utter);
+        };
+        tdAudio.appendChild(btnPlay);
+
+        tr.appendChild(tdWord);
+        tr.appendChild(tdActual);
+        tr.appendChild(tdGuess);
+        tr.appendChild(tdResult);
+        tr.appendChild(tdAudio);
+
+        reviewTableBody.appendChild(tr);
+      });
+
+      modalCompletion.classList.remove('active');
+      modalReview.classList.add('active');
+    }
+
+    /* =====================================================================
+       MASTER PLACEMENT SUMMARY MODAL
+       ===================================================================== */
+    function openSummaryModal() {
+      summaryTableBody.innerHTML = '';
+
+      RAW_SETS.forEach(set => {
+        const score = masterSetScores[set.id];
+        const tr = document.createElement('tr');
+
+        const tdSet = document.createElement('td');
+        tdSet.style.fontWeight = 'bold';
+        tdSet.textContent = `Set ${set.id}`;
+
+        const tdSkill = document.createElement('td');
+        tdSkill.textContent = set.title.split(':')[1]?.trim() || set.title;
+
+        const tdReal = document.createElement('td');
+        const tdFake = document.createElement('td');
+        const tdTotal = document.createElement('td');
+        const tdAccuracy = document.createElement('td');
+        const tdMastery = document.createElement('td');
+
+        if (score) {
+          tdReal.textContent = `${score.realCorrect} / ${score.realTotal}`;
+          tdFake.textContent = `${score.fakeCorrect} / ${score.fakeTotal}`;
+          tdTotal.textContent = `${score.totalCorrect} / ${score.totalWords}`;
+          tdAccuracy.innerHTML = `<strong>${score.accuracy}%</strong>`;
+          
+          if (score.accuracy >= 80) {
+            tdMastery.innerHTML = '<span class="badge-correct">✓ Mastered</span>';
+          } else {
+            tdMastery.innerHTML = '<span class="badge-incorrect">Needs Review</span>';
+          }
+        } else {
+          tdReal.textContent = `— / ${set.real.length}`;
+          tdFake.textContent = `— / ${set.fake.length}`;
+          tdTotal.textContent = `— / ${set.real.length + set.fake.length}`;
+          tdAccuracy.textContent = '—';
+          tdMastery.textContent = 'Not Taken';
+        }
+
+        tr.appendChild(tdSet);
+        tr.appendChild(tdSkill);
+        tr.appendChild(tdReal);
+        tr.appendChild(tdFake);
+        tr.appendChild(tdTotal);
+        tr.appendChild(tdAccuracy);
+        tr.appendChild(tdMastery);
+
+        summaryTableBody.appendChild(tr);
+      });
+
+      modalSummary.classList.add('active');
+    }
+
+    function copyReportToClipboard() {
+      let text = `=== UFLI FOUNDATIONAL READING PLACEMENT TEST REPORT ===\n`;
+      text += `Date: ${new Date().toLocaleDateString()}\n\n`;
+
+      RAW_SETS.forEach(set => {
+        const score = masterSetScores[set.id];
+        if (score) {
+          text += `Set ${set.id} (${set.title}): Total ${score.totalCorrect}/${score.totalWords} (${score.accuracy}%) | Real: ${score.realCorrect}/${score.realTotal} | Made-Up: ${score.fakeCorrect}/${score.fakeTotal} | Status: ${score.accuracy >= 80 ? 'Mastered' : 'Needs Instruction'}\n`;
+        } else {
+          text += `Set ${set.id} (${set.title}): Not administered\n`;
+        }
+      });
+
+      navigator.clipboard.writeText(text).then(() => {
+        btnCopyReport.textContent = '✓ Copied to Clipboard!';
+        setTimeout(() => btnCopyReport.textContent = '📋 Copy Report to Clipboard', 2200);
+      });
+    }
+
+    /* =====================================================================
+       EVENT LISTENERS
+       ===================================================================== */
+    btnListen.addEventListener('click', speakCurrentWord);
+    btnChooseReal.addEventListener('click', () => handleChoice('real'));
+    btnChooseFake.addEventListener('click', () => handleChoice('made-up'));
+
+    // Completion modal actions
+    btnAdvanceSet.addEventListener('click', () => {
+      modalCompletion.classList.remove('active');
+      if (currentSetIndex < RAW_SETS.length - 1) {
+        loadSet(currentSetIndex + 1, true);
+      } else {
+        openSummaryModal();
+      }
+    });
+
+    btnReviewSet.addEventListener('click', openReviewModal);
+
+    btnRetakeSet.addEventListener('click', () => {
+      modalCompletion.classList.remove('active');
+      loadSet(currentSetIndex, true); // Retake with fresh shuffle
+    });
+
+    btnCloseReview.addEventListener('click', () => {
+      modalReview.classList.remove('active');
+      modalCompletion.classList.add('active');
+    });
+
+    // Summary modal actions
+    btnSummary.addEventListener('click', openSummaryModal);
+    btnCloseSummary.addEventListener('click', () => modalSummary.classList.remove('active'));
+    btnCopyReport.addEventListener('click', copyReportToClipboard);
+
+    // Script modal actions
+    btnScript.addEventListener('click', () => modalScript.classList.add('active'));
+    btnCloseScript.addEventListener('click', () => modalScript.classList.remove('active'));
+
+    // Speed toggle
+    btnSpeed.addEventListener('click', () => {
+      if (speechRate === 0.85) {
+        speechRate = 0.70;
+        btnSpeed.textContent = '🐢 0.70x Speed';
+      } else if (speechRate === 0.70) {
+        speechRate = 1.00;
+        btnSpeed.textContent = '🐇 1.00x Speed';
+      } else {
+        speechRate = 0.85;
+        btnSpeed.textContent = '⚡ 0.85x Speed';
+      }
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (modalCompletion.classList.contains('active') || 
+          modalReview.classList.contains('active') || 
+          modalSummary.classList.contains('active') || 
+          modalScript.classList.contains('active')) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        speakCurrentWord();
+      } else if (e.key === 'ArrowLeft' || e.key === '1' || e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        handleChoice('real');
+      } else if (e.key === 'ArrowRight' || e.key === '2' || e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        handleChoice('made-up');
+      }
+    });
+
+    // Close modals on clicking overlay outside card
+    [modalCompletion, modalReview, modalSummary, modalScript].forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    });
+
+    // Initialize Set 1 on load
+    loadSet(0, true);
+  </script>
+</body>
+</html>
